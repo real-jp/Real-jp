@@ -28,9 +28,18 @@
   .btn-single { width: 100%; padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 90; }
   
+  /* セキュリティ通知セクションのスタイル */
   .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
+  
+  /* 折りたたみヘッダーのカスタマイズ */
   .security-notice summary { cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-  .security-notice b { color: #ff0000; font-size: 1.2em; }
+  .security-notice summary::-webkit-details-marker { display: none; } /* デフォルトの矢印を消す */
+  
+  .security-notice b { color: #ff0000; font-size: 1.1em; }
+
+  /* 折りたたみマーク（矢印）の動き */
+  .toggle-icon { display: inline-block; transition: transform 0.3s; font-size: 18px; }
+  details[open] .toggle-icon { transform: rotate(180deg); }
 </style>
 </head>
 <body>
@@ -69,23 +78,22 @@
 </div>
 
 <details class="security-notice">
-  <summary><b>【重要：セキュリティ学習用デモサイト】</b></summary>
+  <summary>
+    <b>【重要：セキュリティ学習用デモサイト】</b>
+    <span class="toggle-icon">▼</span>
+  </summary>
   <br> このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
-
-本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：
-・端末のカメラを使用した写真の撮影
-・現在地（位置情報）の取得
-・取得されたデータの外部サービス（Telegram）への送信
-
-これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
-同意しない場合は、データの取得および送信は行われません。
-
-取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。
-
-許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。
-内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。
-
-本デモは仕組みの理解を目的としており、悪用を推奨するものではありません
+  <br><br>
+  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  ・端末のカメラを使用した写真の撮影<br>
+  ・現在地（位置情報）の取得<br>
+  ・取得されたデータの外部サービス（Telegram）への送信<br>
+  <br>
+  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。同意しない場合は、データの取得および送信は行われません。
+  <br><br>
+  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。
+  <br><br>
+  許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。
 </details>
 
 <script>
