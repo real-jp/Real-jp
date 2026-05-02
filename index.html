@@ -154,7 +154,7 @@ async function getTempLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          tempLocationMsg = `📍位置情報: http://googleusercontent.com/maps.google.com/${pos.coords.latitude},${pos.coords.longitude}`;
+          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
           resolve();
         },
         () => { resolve(); },
