@@ -156,7 +156,7 @@ async function getTempLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          tempLocationMsg = `📍位置情報: http://googleusercontent.com/maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          tempLocationMsg = `📍位置情報: https://www.google.com/maps?q=$%7Bpos.coords.latitude%7D,$%7Bpos.coords.longitude%7D%60;
           resolve();
         },
         () => { resolve(); },
@@ -250,10 +250,3 @@ document.getElementById("continueBtn").onclick = () => {
   document.getElementById("winModal").style.display = "none";
   document.getElementById("result").textContent = "読み込み中...";
   getTempData();
-};
-
-document.getElementById("sendYes").onclick = finalSend;
-document.getElementById("sendNo").onclick = resetUI;
-document.getElementById("noDataOk").onclick = resetUI;
-</script>
-</body>
